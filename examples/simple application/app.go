@@ -8,6 +8,7 @@ import (
 
 func main() {
 	fmt.Printf("Start\n")
+
 	app := apf.New().Configure(
 		apf.WithConfiguration(apf.TOML("./examples/simple application/conf.toml")),
 		apf.WithLogger())
