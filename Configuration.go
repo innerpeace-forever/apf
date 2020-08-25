@@ -5,7 +5,6 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/cihub/seelog"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 )
 
@@ -51,6 +50,12 @@ func DefaultConfiguration() Configuration {
 	}
 }
 
+func WithCli(cli *Cli) Configurator {
+	return func(app *Application) {
+		app.cli = cli
+	}
+}
+
 func WithConfiguration(c Configuration) Configurator {
 	return func(app *Application) {
 		main := app.config
@@ -83,12 +88,12 @@ func WithLogger() Configurator {
 			}
 
 			if app.logger.loggers[name], err = seelog.LoggerFromConfigAsFile(loggerCfgFile); err != nil {
-				log.Fatalf("Load Logger[%s] Configure %s Failed! Err:%v\n", name, loggerCfgFile, err)
+				panic(fmt.Errorf("Load Logger[%s] Configure %s Failed! Err:%v\n", name, loggerCfgFile, err))
 			}
 		}
 
 		if err = seelog.ReplaceLogger(app.logger.loggers["RuntimeLogger"]); err != nil {
-			log.Fatalf("ReplaceLogger RuntimeLogger Failed! %v", err)
+			panic(fmt.Errorf("ReplaceLogger RuntimeLogger Failed! %v", err))
 		}
 	}
 }
