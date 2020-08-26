@@ -1,4 +1,4 @@
-module apf
+module github.com/innerpeace-forever/apf
 
 go 1.14
 
