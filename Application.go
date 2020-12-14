@@ -52,3 +52,7 @@ func (app *Application) Flush() {
 		logger.Flush()
 	}
 }
+
+func (app *Application) Logger(str string) seelog.LoggerInterface {
+	return app.logger.loggers[str]
+}

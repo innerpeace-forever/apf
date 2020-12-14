@@ -1,8 +1,8 @@
 package main
 
 import (
-	"apf"
 	"github.com/cihub/seelog"
+	"github.com/innerpeace-forever/apf"
 )
 
 func main() {
