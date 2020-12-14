@@ -56,3 +56,7 @@ func (app *Application) Flush() {
 func (app *Application) Logger(str string) seelog.LoggerInterface {
 	return app.logger.loggers[str]
 }
+
+func (app *Application) Config() *Configuration {
+	return &app.config
+}
