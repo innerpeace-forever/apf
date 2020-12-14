@@ -71,3 +71,8 @@ func (app *Application) WaitStopSignal() {
 	s := <-app.stopChan
 	seelog.Infof("get stop signal[%v]", s)
 }
+
+func (app *Application) NotifyStopSignal() {
+	app.stopChan <- syscall.SIGTERM
+	seelog.Info("notify stop signal")
+}
