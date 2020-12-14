@@ -3,12 +3,16 @@ package apf
 import (
 	"fmt"
 	"github.com/cihub/seelog"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 type Application struct {
-	config Configuration
-	logger Logger
-	cli    *Cli
+	config   Configuration
+	logger   Logger
+	cli      *Cli
+	stopChan chan os.Signal
 }
 
 type Runner func(*Application) error
@@ -16,7 +20,8 @@ type Runner func(*Application) error
 func New() *Application {
 	config := DefaultConfiguration()
 	app := &Application{
-		config: config,
+		config:   config,
+		stopChan: make(chan os.Signal),
 	}
 	return app
 }
@@ -59,4 +64,10 @@ func (app *Application) Logger(str string) seelog.LoggerInterface {
 
 func (app *Application) Config() *Configuration {
 	return &app.config
+}
+
+func (app *Application) WaitStopSignal() {
+	signal.Notify(app.stopChan, syscall.SIGINT, syscall.SIGTERM)
+	s := <-app.stopChan
+	seelog.Infof("get stop signal[%v]", s)
 }
