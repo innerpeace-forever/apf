@@ -6,6 +6,7 @@ import (
 	"github.com/cihub/seelog"
 	"io/ioutil"
 	"path/filepath"
+	"runtime"
 )
 
 // Right now just support TOML
@@ -47,6 +48,12 @@ func DefaultConfiguration() Configuration {
 	return Configuration{
 		LogLevel: "info",
 		Other:    make(map[string]interface{}),
+	}
+}
+
+func WithProcFactor(factor int) Configurator {
+	return func(app *Application) {
+		runtime.GOMAXPROCS(factor * runtime.NumCPU())
 	}
 }
 

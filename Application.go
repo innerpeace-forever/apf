@@ -13,15 +13,32 @@ type Application struct {
 	logger   Logger
 	cli      *Cli
 	stopChan chan os.Signal
+	global   map[string]interface{}
 }
 
+var app *Application = nil
+
 type Runner func(*Application) error
+
+func init() {
+	app = GetApplication()
+}
+
+func GetApplication() *Application {
+	if app != nil {
+		return app
+	} else {
+		return New()
+	}
+}
 
 func New() *Application {
 	config := DefaultConfiguration()
 	app := &Application{
 		config:   config,
 		stopChan: make(chan os.Signal),
+		cli:      NewCli("Default CLi"),
+		global:   make(map[string]interface{}),
 	}
 	return app
 }
@@ -64,6 +81,14 @@ func (app *Application) Logger(str string) seelog.LoggerInterface {
 
 func (app *Application) Config() *Configuration {
 	return &app.config
+}
+
+func (app *Application) GetGlobal(key string) interface{} {
+	if v, ok := app.global[key]; ok {
+		return v
+	} else {
+		return nil
+	}
 }
 
 func (app *Application) WaitStopSignal() {
