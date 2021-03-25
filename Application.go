@@ -91,6 +91,10 @@ func (app *Application) GetGlobal(key string) interface{} {
 	}
 }
 
+func (app *Application) SetGlobal(key string, value interface{}) {
+	app.global[key] = value
+}
+
 func (app *Application) WaitStopSignal() {
 	signal.Notify(app.stopChan, syscall.SIGINT, syscall.SIGTERM)
 	s := <-app.stopChan
