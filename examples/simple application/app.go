@@ -6,11 +6,11 @@ import (
 )
 
 func main() {
-	app := apf.GetApplication().Configure(
-		apf.WithConfiguration(apf.TOML("./examples/simple application/conf.toml")),
-		apf.WithLogger(),
-		apf.WithCli(apf.NewCli("Test")),
-		apf.WithProcFactor(2))
+	app := apf.GetApplication().
+		WithConfiguration(apf.TOML("./examples/simple application/conf.toml")).
+		WithLogger().
+		WithCli(apf.NewCli("Test")).
+		WithProcFactor(2)
 
 	err := app.Run(func(app *apf.Application) error {
 		seelog.Info("Running")

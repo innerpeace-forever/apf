@@ -43,65 +43,66 @@ func New() *Application {
 	return app
 }
 
-func (app *Application) Configure(cfs ...Configurator) *Application {
+func (p *Application) Configure(cfs ...Configurator) *Application {
 	for _, cfg := range cfs {
 		if cfg != nil {
-			cfg(app)
+			cfg(p)
 		}
 	}
-	return app
+	return p
 }
 
-func (app *Application) Run(runner Runner, cfs ...Configurator) error {
-	if app.cli != nil {
-		if err := app.cli.rootCmd.Execute(); err != nil {
+func (p *Application) Run(runner Runner, cfs ...Configurator) error {
+	if p.cli != nil {
+		if err := p.cli.rootCmd.Execute(); err != nil {
 			panic(fmt.Errorf("WithCli Failed! %v", err))
 		}
 	}
 
-	app.Configure(cfs...)
-	err := runner(app)
+	p.Configure(cfs...)
+	err := runner(p)
 	if err != nil {
 		seelog.Info("App Run Failed! %v", err)
 	}
 
-	app.Flush()
+	p.Flush()
 	return err
 }
 
-func (app *Application) Flush() {
-	for _, logger := range app.logger.loggers {
+func (p *Application) Flush() *Application {
+	for _, logger := range p.logger.loggers {
 		logger.Flush()
 	}
+	return p
 }
 
-func (app *Application) Logger(str string) seelog.LoggerInterface {
-	return app.logger.loggers[str]
+func (p *Application) Logger(str string) seelog.LoggerInterface {
+	return p.logger.loggers[str]
 }
 
-func (app *Application) Config() *Configuration {
-	return &app.config
+func (p *Application) Config() *Configuration {
+	return &p.config
 }
 
-func (app *Application) GetGlobal(key string) interface{} {
-	if v, ok := app.global[key]; ok {
+func (p *Application) GetGlobal(key string) interface{} {
+	if v, ok := p.global[key]; ok {
 		return v
 	} else {
 		return nil
 	}
 }
 
-func (app *Application) SetGlobal(key string, value interface{}) {
-	app.global[key] = value
+func (p *Application) SetGlobal(key string, value interface{}) {
+	p.global[key] = value
 }
 
-func (app *Application) WaitStopSignal() {
-	signal.Notify(app.stopChan, syscall.SIGINT, syscall.SIGTERM)
-	s := <-app.stopChan
+func (p *Application) WaitStopSignal() {
+	signal.Notify(p.stopChan, syscall.SIGINT, syscall.SIGTERM)
+	s := <-p.stopChan
 	seelog.Infof("get stop signal[%v]", s)
 }
 
-func (app *Application) NotifyStopSignal() {
-	app.stopChan <- syscall.SIGTERM
+func (p *Application) NotifyStopSignal() {
+	p.stopChan <- syscall.SIGTERM
 	seelog.Info("notify stop signal")
 }

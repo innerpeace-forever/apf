@@ -51,6 +51,62 @@ func DefaultConfiguration() Configuration {
 	}
 }
 
+// New Interfaces based on functional programming
+
+func (p *Application) WithProcFactor(factor int) *Application {
+	runtime.GOMAXPROCS(factor * runtime.NumCPU())
+	return p
+}
+
+func (p *Application) WithCli(cli *Cli) *Application {
+	p.cli = cli
+	return p
+}
+
+func (p *Application) WithConfiguration(c Configuration) *Application {
+	main := p.config
+	if v := c.LogLevel; v != "" {
+		main.LogLevel = v
+	}
+
+	if v := c.Other; len(v) > 0 {
+		if main.Other == nil {
+			main.Other = make(map[string]interface{}, len(v))
+		}
+		for key, value := range v {
+			main.Other[key] = value
+		}
+	}
+
+	return p
+}
+
+func (p *Application) WithLogger() *Application {
+	other := p.config.Other
+	var err error
+
+	for _, logger := range other["Logger"].([]map[string]interface{}) {
+		name := logger["Name"].(string)
+		loggerCfgFile := logger["ConfigFile"].(string)
+
+		if p.logger.loggers == nil {
+			p.logger.loggers = make(map[string]seelog.LoggerInterface)
+		}
+
+		if p.logger.loggers[name], err = seelog.LoggerFromConfigAsFile(loggerCfgFile); err != nil {
+			panic(fmt.Errorf("Load Logger[%s] Configure %s Failed! Err:%v\n", name, loggerCfgFile, err))
+		}
+	}
+
+	if err = seelog.ReplaceLogger(p.logger.loggers["RuntimeLogger"]); err != nil {
+		panic(fmt.Errorf("ReplaceLogger RuntimeLogger Failed! %v", err))
+	}
+
+	return p
+}
+
+//-----------------------------------------------------------------------------------------------------------------
+
 func WithProcFactor(factor int) Configurator {
 	return func(app *Application) {
 		runtime.GOMAXPROCS(factor * runtime.NumCPU())
