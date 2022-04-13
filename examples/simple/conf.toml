@@ -1,0 +1,7 @@
+[[Other.Logger]]
+Name = "CommonLogger"
+ConfigFile = "./examples/simple application/log_config/common.xml"
+
+[[Other.Logger]]
+Name = "RuntimeLogger"
+ConfigFile = "./examples/simple application/log_config/runtime.xml"
