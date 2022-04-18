@@ -3,10 +3,11 @@ package main
 import (
 	"github.com/cihub/seelog"
 	"github.com/innerpeace-forever/apf"
+	"github.com/innerpeace-forever/apf/libs"
 )
 
 func main() {
-	app := apf.GetApplication().
+	app := libs.GetApplication().
 		WithConfiguration(apf.TOML("./examples/simple application/conf.toml")).
 		WithLogger().
 		WithCli(apf.NewCli("Test")).

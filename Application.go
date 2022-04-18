@@ -2,46 +2,34 @@ package apf
 
 import (
 	"fmt"
-	"github.com/cihub/seelog"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
-type Application struct {
-	config   Configuration
-	logger   Logger
-	cli      *Cli
-	stopChan chan os.Signal
-	global   map[string]interface{}
+type ILogger interface {
+	Flush()
+	Error(v ...interface{}) error
+	Errorf(format string, params ...interface{}) error
+	Info(v ...interface{})
+	Infof(format string, params ...interface{})
 }
 
-var app *Application = nil
+// TODO: wrap CLI into ICli
+type ICli interface {
+}
+
+type Application struct {
+	config        Configuration
+	loggers       map[string]ILogger
+	loggerCurrent ILogger
+	cli           *Cli
+	stopChan      chan os.Signal
+}
 
 type Runner func(*Application) error
 
-func init() {
-	app = GetApplication()
-}
-
-func GetApplication() *Application {
-	if app != nil {
-		return app
-	} else {
-		return New()
-	}
-}
-
-func New() *Application {
-	config := DefaultConfiguration()
-	app := &Application{
-		config:   config,
-		stopChan: make(chan os.Signal),
-		cli:      NewCli("Default CLi"),
-		global:   make(map[string]interface{}),
-	}
-	return app
-}
+// TODO: Move all With* for Application into Application.go
 
 func (p *Application) Configure(cfs ...Configurator) *Application {
 	for _, cfg := range cfs {
@@ -52,17 +40,17 @@ func (p *Application) Configure(cfs ...Configurator) *Application {
 	return p
 }
 
-func (p *Application) Run(runner Runner, cfs ...Configurator) error {
+func (p *Application) Run(runner Runner) error {
+	// TODO: check p.loggerCurrent is nil
 	if p.cli != nil {
 		if err := p.cli.rootCmd.Execute(); err != nil {
-			panic(fmt.Errorf("WithCli Failed! %v", err))
+			panic(p.loggerCurrent.Errorf("WithCli Failed! %v", err))
 		}
 	}
 
-	p.Configure(cfs...)
 	err := runner(p)
 	if err != nil {
-		seelog.Info("App Run Failed! %v", err)
+		p.loggerCurrent.Info("App Run Failed! %v", err)
 	}
 
 	p.Flush()
@@ -70,39 +58,27 @@ func (p *Application) Run(runner Runner, cfs ...Configurator) error {
 }
 
 func (p *Application) Flush() *Application {
-	for _, logger := range p.logger.loggers {
+	for _, logger := range p.loggers {
 		logger.Flush()
 	}
 	return p
 }
 
-func (p *Application) Logger(str string) seelog.LoggerInterface {
-	return p.logger.loggers[str]
+func (p *Application) Logger(str string) ILogger {
+	return p.loggers[str]
 }
 
 func (p *Application) Config() *Configuration {
 	return &p.config
 }
 
-func (p *Application) GetGlobal(key string) interface{} {
-	if v, ok := p.global[key]; ok {
-		return v
-	} else {
-		return nil
-	}
-}
-
-func (p *Application) SetGlobal(key string, value interface{}) {
-	p.global[key] = value
-}
-
 func (p *Application) WaitStopSignal() {
 	signal.Notify(p.stopChan, syscall.SIGINT, syscall.SIGTERM)
 	s := <-p.stopChan
-	seelog.Infof("get stop signal[%v]", s)
+	p.loggerCurrent.Infof("get stop signal[%v]", s)
 }
 
 func (p *Application) NotifyStopSignal() {
 	p.stopChan <- syscall.SIGTERM
-	seelog.Info("notify stop signal")
+	p.loggerCurrent.Info("notify stop signal")
 }
