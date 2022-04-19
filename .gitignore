@@ -3,3 +3,4 @@ log/
 examples/simple/log
 examples/simple/app.exe
 examples/simple/app
+.idea/
