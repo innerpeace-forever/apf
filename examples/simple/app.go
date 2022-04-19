@@ -8,8 +8,8 @@ import (
 func main() {
 	fmt.Printf("Start\n")
 
-	if err := apf.New().
-		WithTOMLConfiguration("./examples/simple/conf.toml").
+	if err := apf.GetApplication().
+		WithTOMLConfiguration("conf.toml").
 		WithDefaultSeelogger().
 		Run(func(app *apf.Application) error {
 			app.Info("Running")

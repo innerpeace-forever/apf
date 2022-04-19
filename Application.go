@@ -31,8 +31,20 @@ type Application struct {
 
 type Runner func(*Application) error
 
+func isNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+
+	switch reflect.TypeOf(i).Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+		return reflect.ValueOf(i).IsNil()
+	}
+	return false
+}
+
 func (p *Application) Run(runner Runner) error {
-	if p.cli != nil && !reflect.ValueOf(p.cli).IsNil() {
+	if !isNil(p.cli) {
 		if err := p.cli.Execute(); err != nil {
 			panic(p.Errorf("WithCli Failed! %v", err))
 		}
@@ -73,8 +85,12 @@ func (p *Application) WaitStopSignal() {
 }
 
 func (p *Application) NotifyStopSignal() {
-	p.stopChan <- syscall.SIGTERM
-	p.Info("notify stop signal")
+	select {
+	case p.stopChan <- syscall.SIGTERM:
+		p.Info("notify stop signal")
+	default:
+		p.Info("stopChan is full")
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -94,7 +110,7 @@ func (p *Application) WithCli(cli ICli) *Application {
 // -----------------------------For printing----------------------------------
 
 func (p *Application) Info(v ...interface{}) {
-	if p.loggerCurrent != nil && !reflect.ValueOf(p.loggerCurrent).IsNil() {
+	if !isNil(p.loggerCurrent) {
 		p.loggerCurrent.Info(v...)
 	} else {
 		fmt.Print(v...)
@@ -102,7 +118,7 @@ func (p *Application) Info(v ...interface{}) {
 }
 
 func (p *Application) Infof(format string, params ...interface{}) {
-	if p.loggerCurrent != nil && !reflect.ValueOf(p.loggerCurrent).IsNil() {
+	if !isNil(p.loggerCurrent) {
 		p.loggerCurrent.Infof(format, params...)
 	} else {
 		fmt.Printf(format, params...)
@@ -110,7 +126,7 @@ func (p *Application) Infof(format string, params ...interface{}) {
 }
 
 func (p *Application) Error(v ...interface{}) error {
-	if !reflect.ValueOf(p.loggerCurrent).IsNil() {
+	if !isNil(p.loggerCurrent) {
 		return p.loggerCurrent.Error(v...)
 	} else {
 		_, err := fmt.Print(v...)
@@ -119,7 +135,7 @@ func (p *Application) Error(v ...interface{}) error {
 }
 
 func (p *Application) Errorf(format string, params ...interface{}) error {
-	if !reflect.ValueOf(p.loggerCurrent).IsNil() {
+	if !isNil(p.loggerCurrent) {
 		return p.loggerCurrent.Errorf(format, params...)
 	} else {
 		return fmt.Errorf(format, params...)

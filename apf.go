@@ -21,7 +21,7 @@ func GetApplication() *Application {
 func New() *Application {
 	oldApp := app
 
-	app := &Application{
+	app = &Application{
 		conf:     DefaultConfiguration(),
 		stopChan: make(chan os.Signal),
 		cli:      nil,
