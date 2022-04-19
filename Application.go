@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
+	"runtime"
 	"syscall"
 )
 
@@ -15,42 +17,30 @@ type ILogger interface {
 	Infof(format string, params ...interface{})
 }
 
-// TODO: wrap CLI into ICli
 type ICli interface {
+	Execute() error
 }
 
 type Application struct {
-	config        Configuration
+	conf          *Configuration
 	loggers       map[string]ILogger
 	loggerCurrent ILogger
-	cli           *Cli
+	cli           ICli
 	stopChan      chan os.Signal
 }
 
 type Runner func(*Application) error
 
-// TODO: Move all With* for Application into Application.go
-
-func (p *Application) Configure(cfs ...Configurator) *Application {
-	for _, cfg := range cfs {
-		if cfg != nil {
-			cfg(p)
-		}
-	}
-	return p
-}
-
 func (p *Application) Run(runner Runner) error {
-	// TODO: check p.loggerCurrent is nil
-	if p.cli != nil {
-		if err := p.cli.rootCmd.Execute(); err != nil {
-			panic(p.loggerCurrent.Errorf("WithCli Failed! %v", err))
+	if p.cli != nil && !reflect.ValueOf(p.cli).IsNil() {
+		if err := p.cli.Execute(); err != nil {
+			panic(p.Errorf("WithCli Failed! %v", err))
 		}
 	}
 
 	err := runner(p)
 	if err != nil {
-		p.loggerCurrent.Info("App Run Failed! %v", err)
+		p.Infof("App Run Failed! %v", err)
 	}
 
 	p.Flush()
@@ -65,20 +55,75 @@ func (p *Application) Flush() *Application {
 }
 
 func (p *Application) Logger(str string) ILogger {
-	return p.loggers[str]
+	if p.loggers != nil {
+		return p.loggers[str]
+	} else {
+		return nil
+	}
 }
 
-func (p *Application) Config() *Configuration {
-	return &p.config
+func (p *Application) Conf() *Configuration {
+	return p.conf
 }
 
 func (p *Application) WaitStopSignal() {
 	signal.Notify(p.stopChan, syscall.SIGINT, syscall.SIGTERM)
 	s := <-p.stopChan
-	p.loggerCurrent.Infof("get stop signal[%v]", s)
+	p.Infof("get stop signal[%v]", s)
 }
 
 func (p *Application) NotifyStopSignal() {
 	p.stopChan <- syscall.SIGTERM
-	p.loggerCurrent.Info("notify stop signal")
+	p.Info("notify stop signal")
 }
+
+// ---------------------------------------------------------------------------
+// -------------------------For configuring app-------------------------------
+
+func (p *Application) WithProcFactor(factor int) *Application {
+	runtime.GOMAXPROCS(factor * runtime.NumCPU())
+	return p
+}
+
+func (p *Application) WithCli(cli ICli) *Application {
+	p.cli = cli
+	return p
+}
+
+// ---------------------------------------------------------------------------
+// -----------------------------For printing----------------------------------
+
+func (p *Application) Info(v ...interface{}) {
+	if p.loggerCurrent != nil && !reflect.ValueOf(p.loggerCurrent).IsNil() {
+		p.loggerCurrent.Info(v...)
+	} else {
+		fmt.Print(v...)
+	}
+}
+
+func (p *Application) Infof(format string, params ...interface{}) {
+	if p.loggerCurrent != nil && !reflect.ValueOf(p.loggerCurrent).IsNil() {
+		p.loggerCurrent.Infof(format, params...)
+	} else {
+		fmt.Printf(format, params...)
+	}
+}
+
+func (p *Application) Error(v ...interface{}) error {
+	if !reflect.ValueOf(p.loggerCurrent).IsNil() {
+		return p.loggerCurrent.Error(v...)
+	} else {
+		_, err := fmt.Print(v...)
+		return err
+	}
+}
+
+func (p *Application) Errorf(format string, params ...interface{}) error {
+	if !reflect.ValueOf(p.loggerCurrent).IsNil() {
+		return p.loggerCurrent.Errorf(format, params...)
+	} else {
+		return fmt.Errorf(format, params...)
+	}
+}
+
+// ---------------------------------------------------------------------------

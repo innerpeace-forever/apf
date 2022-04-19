@@ -19,11 +19,18 @@ func GetApplication() *Application {
 }
 
 func New() *Application {
-	config := DefaultConfiguration()
+	oldApp := app
+
 	app := &Application{
-		config:   config,
+		conf:     DefaultConfiguration(),
 		stopChan: make(chan os.Signal),
-		cli:      NewCli("Default CLi"),
+		cli:      nil,
 	}
+
+	if oldApp != nil {
+		oldApp.NotifyStopSignal()
+		oldApp.Flush()
+	}
+
 	return app
 }

@@ -1,8 +1,0 @@
-<seelog>
-    <outputs formatid="common">
-        <rollingfile type="date" filename="./log/common.log" datepattern="2006-01-02-15" maxrolls="240"/>
-    </outputs>
-    <formats>
-        <format id="common" format="%Date %Time=>%Msg%n"/>
-    </formats>
-</seelog>
