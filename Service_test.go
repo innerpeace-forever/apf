@@ -5,11 +5,8 @@ import (
 	"errors"
 	"github.com/cihub/seelog"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"testing"
 )
 
@@ -87,24 +84,17 @@ func TestBaseService_Stop(t *testing.T) {
 func TestService_HandleFunc(t *testing.T) {
 	Convey("HandleFunc after CreateService", t, func() {
 		var b = CreateService("real service", 12888, seelog.Current)
-		//b.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
-		//	_, _ = writer.Write([]byte("This is Test"))
-		//})
-		b.mux.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
+		b.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
 			_, _ = writer.Write([]byte("This is Test"))
 		})
-		b.svr = &http.Server{
-			Addr:    ":" + strconv.Itoa(12888),
-			Handler: h2c.NewHandler(b.mux, &http2.Server{}),
-		}
 		b.Start()
 		resp, err := http.Get("http://127.0.0.1:12888/test")
-		So(err, ShouldNotBeNil)
+		So(err, ShouldBeNil)
 		So(resp, ShouldNotBeNil)
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
-		So(err, ShouldNotBeNil)
-		So(string(body), ShouldEqual, "Test is Test")
+		So(err, ShouldBeNil)
+		So(string(body), ShouldEqual, "This is Test")
 		So(b.Stop(), ShouldBeNil)
 		So(b.isStopped(), ShouldBeTrue)
 	})
