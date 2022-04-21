@@ -10,7 +10,7 @@ func main() {
 
 	if err := apf.GetApplication().
 		WithTOMLConfiguration("conf.toml").
-		WithDefaultSeelogger().
+		WithConfSeelogger().
 		Run(func(app *apf.Application) error {
 			app.Info("Running")
 			return nil

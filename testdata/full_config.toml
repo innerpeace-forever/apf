@@ -7,6 +7,7 @@ Name = "RuntimeLogger"
 ConfigFile = "log_config/runtime.xml"
 
 [Service]
+Name = "TestService"
 Port = 1234
 
 [Other.TestOther]

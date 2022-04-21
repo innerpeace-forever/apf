@@ -6,6 +6,7 @@ import (
 )
 
 func checkFullConfig(c *Configuration) {
+	So(c.Service["Name"], ShouldEqual, "TestService")
 	So(c.Service["Port"], ShouldEqual, 1234)
 	So(len(c.Logger), ShouldEqual, 2)
 	So(c.Logger[0]["Name"], ShouldEqual, "CommonLogger")
