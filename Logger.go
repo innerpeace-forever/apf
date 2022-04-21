@@ -6,7 +6,7 @@ import (
 )
 
 func (p *Application) WithDefaultSeelogger() *Application {
-	return p.WithMultiSeelogger(p.conf.Other["Logger"].([]map[string]interface{}))
+	return p.WithMultiSeelogger(p.conf.Logger)
 }
 
 // WithMultiSeelogger : The last logger with Default tag will be the current logger
