@@ -13,6 +13,7 @@ func TestApplication_Run(t *testing.T) {
 			nil,
 			nil,
 			nil,
+			nil,
 		}
 		So(func() {
 			_ = app.Run(func(application *Application) error {
