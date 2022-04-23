@@ -26,6 +26,13 @@ type Service struct {
 	cStop  chan bool
 }
 
+type Context struct {
+	Request       *http.Request
+	ResponseWrite http.ResponseWriter
+}
+
+type Handler func(*Context)
+
 func CreateService(name string, port int, logger ILogger) *Service {
 	if isNil(logger) {
 		panic(fmt.Errorf("nil input for BaseService Start [%s]", name))
@@ -50,8 +57,15 @@ func (p *Service) HandleFunc(pattern string, handler func(http.ResponseWriter, *
 	return p
 }
 
-func (p *Service) Handle(pattern string, handler http.Handler) *Service {
-	p.mux.Handle(pattern, handler)
+func (p *Service) Handle(pattern string, handler Handler) *Service {
+	p.mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+		ctx := &Context{
+			Request:       request,
+			ResponseWrite: writer,
+		}
+
+		handler(ctx)
+	})
 	return p
 }
 
