@@ -1,7 +1,7 @@
-[[Other.Logger]]
+[[Logger]]
 Name = "CommonLogger"
 ConfigFile = "log_config/common.xml"
 
-[[Other.Logger]]
+[[Logger]]
 Name = "RuntimeLogger"
 ConfigFile = "log_config/runtime.xml"

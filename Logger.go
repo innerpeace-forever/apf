@@ -5,8 +5,13 @@ import (
 	"github.com/cihub/seelog"
 )
 
-func (p *Application) WithDefaultSeelogger() *Application {
-	return p.WithMultiSeelogger(p.conf.Other["Logger"].([]map[string]interface{}))
+func (p *Application) WithConfSeelogger() *Application {
+	return p.WithMultiSeelogger(p.conf.Logger)
+}
+
+func (p *Application) WithConsoleLogger() *Application {
+	p.loggerCurrent = seelog.Current
+	return p
 }
 
 // WithMultiSeelogger : The last logger with Default tag will be the current logger

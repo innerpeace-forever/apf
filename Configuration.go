@@ -7,16 +7,11 @@ import (
 	"path/filepath"
 )
 
-const (
-	WARN  = "warn"
-	INFO  = "info"
-	DEBUG = "debug"
-)
-
 // Configuration Right now just support TOML
 type Configuration struct {
-	LogLevel string                 `toml:"LogLevel"`
-	Other    map[string]interface{} `toml:"Other"`
+	Logger  []map[string]interface{} `toml:"Logger"`
+	Service map[string]interface{}   `toml:"Service"`
+	Other   map[string]interface{}   `toml:"Other"`
 }
 
 type Configurator func(app *Application)
@@ -47,20 +42,27 @@ func TOML(filename string) *Configuration {
 
 func DefaultConfiguration() *Configuration {
 	return &Configuration{
-		LogLevel: "info",
-		Other:    make(map[string]interface{}, 20),
+		Logger:  nil,
+		Service: nil,
+		Other:   nil,
 	}
 }
 
-// New Interfaces based on functional programming
-
 func (p *Application) WithAppendConf(c *Configuration) *Application {
+	if c == nil {
+		return p
+	}
+
 	if p.conf == nil {
 		p.conf = DefaultConfiguration()
 	}
 
-	if v := c.LogLevel; v != "" {
-		p.conf.LogLevel = v
+	if c.Service != nil && p.conf.Service == nil {
+		p.conf.Service = c.Service
+	}
+
+	if c.Logger != nil && p.conf.Logger == nil {
+		p.conf.Logger = c.Logger
 	}
 
 	if v := c.Other; len(v) > 0 {

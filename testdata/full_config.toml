@@ -1,0 +1,14 @@
+[[Logger]]
+Name = "CommonLogger"
+ConfigFile = "log_config/common.xml"
+
+[[Logger]]
+Name = "RuntimeLogger"
+ConfigFile = "log_config/runtime.xml"
+
+[Service]
+Name = "TestService"
+Port = 1234
+
+[Other.TestOther]
+Name = "test"

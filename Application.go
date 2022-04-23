@@ -26,6 +26,7 @@ type Application struct {
 	loggers       map[string]ILogger
 	loggerCurrent ILogger
 	cli           ICli
+	service       *Service
 	stopChan      chan os.Signal
 }
 
@@ -74,6 +75,10 @@ func (p *Application) Logger(str string) ILogger {
 	}
 }
 
+func (p *Application) Service() *Service {
+	return p.service
+}
+
 func (p *Application) Conf() *Configuration {
 	return p.conf
 }
@@ -103,6 +108,30 @@ func (p *Application) WithProcFactor(factor int) *Application {
 
 func (p *Application) WithCli(cli ICli) *Application {
 	p.cli = cli
+	return p
+}
+
+func (p *Application) WithConfService() *Application {
+	if p.Conf().Service == nil {
+		panic(p.Error("No Service Configuration when WithConfService"))
+	}
+
+	name := p.Conf().Service["Name"].(string)
+	port := p.Conf().Service["Port"].(int64)
+
+	return p.WithNewService(name, int(port))
+}
+
+func (p *Application) WithNewService(name string, port int) *Application {
+	if p.service != nil {
+		_ = p.service.Stop()
+	}
+
+	if isNil(p.loggerCurrent) {
+		p.WithConsoleLogger()
+	}
+
+	p.service = CreateService(name, port, p.loggerCurrent)
 	return p
 }
 
