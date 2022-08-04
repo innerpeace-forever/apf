@@ -29,6 +29,7 @@ type Service struct {
 type Context struct {
 	Request       *http.Request
 	ResponseWrite http.ResponseWriter
+	Trailer       map[int]interface{}
 }
 
 type Handler func(*Context)
@@ -67,6 +68,7 @@ func (p *Service) Handle(pattern string, handler Handler) *Service {
 		ctx := &Context{
 			Request:       request,
 			ResponseWrite: writer,
+			Trailer:       make(map[int]interface{}, 4),
 		}
 
 		handler(ctx)

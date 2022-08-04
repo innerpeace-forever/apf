@@ -3,6 +3,7 @@ package apf
 import (
 	"fmt"
 	"github.com/cihub/seelog"
+	"strings"
 )
 
 func (p *Application) WithConfSeelogger() *Application {
@@ -29,7 +30,7 @@ func (p *Application) WithMultiSeelogger(confs []map[string]interface{}) *Applic
 		if isNil(conf["Name"]) || isNil(conf["ConfigFile"]) {
 			panic(fmt.Errorf("missing required keys"))
 		}
-		name := conf["Name"].(string)
+		name := strings.ToLower(conf["Name"].(string))
 		seelogConfFile := conf["ConfigFile"].(string)
 
 		isDefault := ""
