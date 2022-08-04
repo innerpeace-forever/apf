@@ -52,6 +52,11 @@ func CreateService(name string, port int, logger ILogger) *Service {
 	}
 }
 
+func (p *Service) Route(handler func(*Service)) *Service {
+	handler(p)
+	return p
+}
+
 func (p *Service) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) *Service {
 	p.mux.HandleFunc(pattern, handler)
 	return p
