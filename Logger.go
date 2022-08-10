@@ -42,9 +42,7 @@ func (p *Application) WithMultiSeelogger(confs []map[string]interface{}) *Applic
 			p.loggers[name] = logger
 			if isDefault != "" || p.loggerCurrent == nil {
 				p.loggerCurrent = logger
-				if err := seelog.ReplaceLogger(logger); err != nil {
-					panic(fmt.Errorf("Load Logger[%s] Configure %s ReplaceLogger Failed! Err:%v\n", name, seelogConfFile, err))
-				}
+				seelog.Current = logger
 			}
 		} else {
 			panic(fmt.Errorf("Load Logger[%s] Configure %s Failed! Err:%v\n", name, seelogConfFile, err))
